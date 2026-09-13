@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- ENUMS ----------
+
+enum Role {
+  ADMIN
+  MANAGER
+  TEAM_MEMBER
+}
+
+enum RecurrenceInterval {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum EngagementStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  WAITING_FOR_CLIENT
+  READY_FOR_REVIEW
+  CHANGES_REQUESTED
+  COMPLETED
+}
+
+enum AuditAction {
+  STATUS_CHANGE
+  APPROVED
+  CHANGES_REQUESTED
+  ENGAGEMENT_CREATED
+  TASK_ASSIGNED
+  TASK_REASSIGNED
+}
+
+// ---------- MODELS ----------
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  isActive     Boolean  @default(true) //To prevent hard delete and keep track of log history
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Tasks assigned to this user
+  assignedTasks   Task[]       @relation("TaskAssignee")
+  // Tasks this user reviewed (as manager)
+  reviewedTasks   Task[]       @relation("TaskReviewer")
+  engagementsMade Engagement[] @relation("EngagementCreatedBy")
+  auditLogs       AuditLog[]
+
+  @@index([role])
+}
+
+model Client {
+  id           String   @id @default(uuid())
+  name         String
+  contactEmail String?
+  contactPhone String?
+  isActive     Boolean  @default(true) //To prevent hard delete and keep track of engagement history
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  engagements Engagement[]
+
+  @@index([name])
+}
+
+model ServiceType {
+  id                 String              @id @default(uuid())
+  name               String              @unique
+  description        String?
+  isRecurring        Boolean             @default(false)
+  recurrenceInterval RecurrenceInterval? // null when isRecurring = false
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  taskTemplates TaskTemplate[]
+  engagements   Engagement[]
+}
+
+model TaskTemplate {
+  id            String      @id @default(uuid())
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id])
+  serviceTypeId String
+  title         String
+  description   String?
+  sequence      Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  tasks Task[]
+
+  @@unique([serviceTypeId, sequence])
+  @@index([serviceTypeId])
+}
+
+model Engagement {
+  id            String           @id @default(uuid())
+  client        Client           @relation(fields: [clientId], references: [id])
+  clientId      String
+  serviceType   ServiceType      @relation(fields: [serviceTypeId], references: [id])
+  serviceTypeId String
+  // Period identifies the recurrence instance, e.g. "2026-09" for monthly.
+  // NULL for one-time engagements — Postgres treats multiple NULLs as
+  // distinct, so one-time engagements are never blocked by this constraint.
+  period        String?
+  status        EngagementStatus @default(ACTIVE)
+  startDate     DateTime         @default(now())
+  dueDate       DateTime?
+  createdBy     User             @relation("EngagementCreatedBy", fields: [createdById], references: [id])
+  createdById   String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  tasks     Task[]
+  auditLogs AuditLog[]
+
+  // Hard duplicate-prevention constraint for recurring engagements:
+  // same client + same service + same period cannot exist twice.
+  @@unique([clientId, serviceTypeId, period], name: "uniq_client_service_period")
+  @@index([clientId])
+  @@index([status])
+  @@index([serviceTypeId])
+  @@index([dueDate])
+}
+
+model Task {
+  id           String        @id @default(uuid())
+  engagement   Engagement    @relation(fields: [engagementId], references: [id])
+  engagementId String
+  template     TaskTemplate? @relation(fields: [templateId], references: [id])
+  templateId   String?
+  title        String
+  description  String?
+  status       TaskStatus    @default(NOT_STARTED)
+  assignedTo   User?         @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  assignedToId String?
+  reviewer     User?         @relation("TaskReviewer", fields: [reviewerId], references: [id])
+  reviewerId   String?
+  dueDate      DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([assignedToId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([engagementId])
+  @@index([assignedToId, status])
+}
+
+model AuditLog {
+  id           String      @id @default(uuid())
+  task         Task?       @relation(fields: [taskId], references: [id])
+  taskId       String?
+  engagement   Engagement? @relation(fields: [engagementId], references: [id])
+  engagementId String?
+  user         User        @relation(fields: [userId], references: [id])
+  userId       String
+  action       AuditAction
+  fromStatus   TaskStatus?
+  toStatus     TaskStatus?
+  notes        String?
+  createdAt    DateTime    @default(now())
+
+  @@index([taskId])
+  @@index([engagementId])
+  @@index([createdAt])
+}
