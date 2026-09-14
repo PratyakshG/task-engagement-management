@@ -5,6 +5,8 @@ import { prisma } from "./lib/prisma.js";
 import { authRouter } from "./routes/auth.js";
 import { usersRouter } from "./routes/users.js";
 import { clientsRouter } from "./routes/client.js";
+import { serviceTypesRouter } from "./routes/service-types.js";
+import { taskTemplatesRouter } from "./routes/task-templates.js";
 
 export const app = express();
 
@@ -36,6 +38,13 @@ app.get("/api/db/status", async (_req, res) => {
   }
 });
 
+// API routes
+app.use("/api/auth", authRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/clients", clientsRouter);
+app.use("/api/service-types", serviceTypesRouter);
+app.use("/api/task-templates", taskTemplatesRouter);
+
 // 404 handler
 app.use((_req, res) => {
   return res.status(404).json({
@@ -58,8 +67,3 @@ app.use(
     });
   },
 );
-
-// API routes
-app.use("/api/auth", authRouter);
-app.use("/api/users", usersRouter);
-app.use("/api/clients", clientsRouter);
