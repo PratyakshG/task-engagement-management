@@ -1,23 +1,36 @@
 import { Router } from "express";
-import { prisma } from "../lib/prisma.js";
+
+import {
+  createUserController,
+  getUserController,
+  listUsersController,
+  updateUserController,
+} from "../controllers/user.controller.js";
+import { requireAuth } from "../middleware/auth.js";
+import { requireRole } from "../middleware/role.js";
+import { Role } from "../generated/prisma/client.js";
 
 export const usersRouter = Router();
 
-usersRouter.get("/", async (_req, res, next) => {
-  try {
-    const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
-    return res.json({ data: users });
-  } catch (error) {
-    return next(error);
-  }
-});
+// Every route must go through auth check first
+usersRouter.use(requireAuth);
 
-usersRouter.get("/:id", async (req, res, next) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { id: req.params.id } });
-    if (!user) return res.status(404).json({ error: "User not found." });
-    return res.json({ data: user });
-  } catch (error) {
-    return next(error);
-  }
-});
+// List all users
+usersRouter.get(
+  "/",
+  requireRole(Role.ADMIN, Role.MANAGER),
+  listUsersController,
+);
+
+// Find unique user
+usersRouter.get(
+  "/:id",
+  requireRole(Role.ADMIN, Role.MANAGER),
+  getUserController,
+);
+
+// Create new user
+usersRouter.post("/", requireRole(Role.ADMIN), createUserController);
+
+// Update existing user
+usersRouter.patch("/:id", requireRole(Role.ADMIN), updateUserController);
