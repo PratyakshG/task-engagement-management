@@ -4,6 +4,7 @@ import express from "express";
 import { prisma } from "./lib/prisma.js";
 import { authRouter } from "./routes/auth.js";
 import { usersRouter } from "./routes/users.js";
+import { clientsRouter } from "./routes/client.js";
 
 export const app = express();
 
@@ -15,16 +16,12 @@ app.use(
 
 app.use(express.json());
 
-/**
- * Health check
- */
+// Health check
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-/**
- * Database health check
- */
+// Database health check
 app.get("/api/db/status", async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -39,24 +36,14 @@ app.get("/api/db/status", async (_req, res) => {
   }
 });
 
-/**
- * API routes
- */
-app.use("/api/auth", authRouter);
-app.use("/api/users", usersRouter);
-
-/**
- * 404 handler
- */
+// 404 handler
 app.use((_req, res) => {
   return res.status(404).json({
     error: "Route not found",
   });
 });
 
-/**
- * Global error handler
- */
+// Global error handler
 app.use(
   (
     err: unknown,
@@ -71,3 +58,8 @@ app.use(
     });
   },
 );
+
+// API routes
+app.use("/api/auth", authRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/clients", clientsRouter);
