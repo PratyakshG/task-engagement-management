@@ -7,6 +7,7 @@ import { usersRouter } from "./routes/users.js";
 import { clientsRouter } from "./routes/client.js";
 import { serviceTypesRouter } from "./routes/service-types.js";
 import { taskTemplatesRouter } from "./routes/task-templates.js";
+import { engagementsRouter } from "./routes/engagement.js";
 
 export const app = express();
 
@@ -44,6 +45,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/clients", clientsRouter);
 app.use("/api/service-types", serviceTypesRouter);
 app.use("/api/task-templates", taskTemplatesRouter);
+app.use("/api/engagements", engagementsRouter);
 
 // 404 handler
 app.use((_req, res) => {
