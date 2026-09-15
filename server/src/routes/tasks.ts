@@ -6,6 +6,11 @@ import {
   listTasksController,
 } from "../controllers/task.controller.js";
 
+import {
+  changeTaskStatusController,
+  reviewTaskController,
+} from "../controllers/task.controller.js";
+
 import { requireAuth } from "../middleware/auth.js";
 import { requireRole } from "../middleware/role.js";
 import { Role } from "../generated/prisma/client.js";
@@ -22,4 +27,12 @@ tasksRouter.patch(
   "/:id/assignment",
   requireRole(Role.ADMIN, Role.MANAGER),
   assignTaskController,
+);
+
+tasksRouter.patch("/:id/status", changeTaskStatusController);
+
+tasksRouter.post(
+  "/:id/review",
+  requireRole(Role.ADMIN, Role.MANAGER),
+  reviewTaskController,
 );
