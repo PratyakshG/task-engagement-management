@@ -9,6 +9,7 @@ import { serviceTypesRouter } from "./routes/service-types.js";
 import { taskTemplatesRouter } from "./routes/task-templates.js";
 import { engagementsRouter } from "./routes/engagement.js";
 import { tasksRouter } from "./routes/tasks.js";
+import { dashboardRouter } from "./routes/dashboard.js";
 
 export const app = express();
 
@@ -48,6 +49,7 @@ app.use("/api/service-types", serviceTypesRouter);
 app.use("/api/task-templates", taskTemplatesRouter);
 app.use("/api/engagements", engagementsRouter);
 app.use("/api/tasks", tasksRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 // 404 handler
 app.use((_req, res) => {
