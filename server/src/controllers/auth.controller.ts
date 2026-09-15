@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { loginUser } from "../services/auth.service.js";
+import { getCurrentUser, loginUser } from "../services/auth.service.js";
 import { loginSchema } from "../validators/auth.validator.js";
 
 export async function login(req: Request, res: Response) {
@@ -28,5 +28,28 @@ export async function login(req: Request, res: Response) {
     }
 
     throw error;
+  }
+}
+
+export async function currentUser(
+  req: Request,
+  res: Response,
+): Promise<Response> {
+  if (!req.user) {
+    return res.status(401).json({
+      error: "Authentication required.",
+    });
+  }
+
+  try {
+    const user = await getCurrentUser(req.user.id);
+
+    return res.json({
+      user,
+    });
+  } catch {
+    return res.status(404).json({
+      error: "User not found.",
+    });
   }
 }
