@@ -5,6 +5,7 @@ import {
   getEngagementById,
   listEngagements,
   updateEngagement,
+  generateNextEngagement,
 } from "../services/engagement.service.js";
 
 import {
@@ -153,5 +154,65 @@ export async function updateEngagementController(req: Request, res: Response) {
     }
 
     throw error;
+  }
+}
+
+export async function generateNextEngagementController(
+  req: Request,
+  res: Response,
+) {
+  if (!req.user) {
+    return res.status(401).json({
+      error: "Authentication required.",
+    });
+  }
+
+  const parsedId = engagementIdSchema.safeParse(req.params.id);
+
+  if (!parsedId.success) {
+    return res.status(400).json({
+      error: "Invalid engagement ID.",
+    });
+  }
+
+  try {
+    const engagement = await generateNextEngagement(parsedId.data, req.user.id);
+
+    return res.status(201).json(engagement);
+  } catch (error) {
+    if (!(error instanceof Error)) {
+      return res.status(500).json({
+        error: "Failed to generate next engagement.",
+      });
+    }
+
+    if (error.message === "Engagement not found.") {
+      return res.status(404).json({
+        error: error.message,
+      });
+    }
+
+    if (
+      error.message ===
+        "Only recurring services can generate the next engagement." ||
+      error.message === "Recurring engagement must have a period." ||
+      error.message === "Recurring service is missing its recurrence interval."
+    ) {
+      return res.status(400).json({
+        error: error.message,
+      });
+    }
+
+    if (error.message === "The next period engagement already exists.") {
+      return res.status(409).json({
+        error: error.message,
+      });
+    }
+
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Failed to generate next engagement.",
+    });
   }
 }

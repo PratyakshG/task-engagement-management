@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   createEngagementController,
+  generateNextEngagementController,
   getEngagementController,
   listEngagementsController,
   updateEngagementController,
@@ -37,4 +38,10 @@ engagementsRouter.patch(
   "/:id",
   requireRole(Role.ADMIN, Role.MANAGER),
   updateEngagementController,
+);
+
+engagementsRouter.post(
+  "/:id/generate-next",
+  requireRole(Role.MANAGER),
+  generateNextEngagementController,
 );

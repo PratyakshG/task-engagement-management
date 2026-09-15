@@ -1,8 +1,12 @@
 import { prisma } from "../lib/prisma.js";
+
 import type {
   CreateEngagementInput,
   UpdateEngagementInput,
 } from "../validators/engagement.validator.js";
+
+import { AuditAction, EngagementStatus } from "../generated/prisma/enums.js";
+import { getNextPeriod } from "./recurrence.service.js";
 
 function validatePeriod(
   isRecurring: boolean,
@@ -350,4 +354,123 @@ export async function updateEngagement(
       },
     },
   });
+}
+
+export async function generateNextEngagement(
+  engagementId: string,
+  createdById: string,
+) {
+  return prisma.$transaction(
+    async (tx) => {
+      const currentEngagement = await tx.engagement.findUnique({
+        where: {
+          id: engagementId,
+        },
+        include: {
+          serviceType: {
+            include: {
+              taskTemplates: {
+                orderBy: {
+                  sequence: "asc",
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!currentEngagement) {
+        throw new Error("Engagement not found.");
+      }
+
+      if (!currentEngagement.serviceType.isRecurring) {
+        throw new Error(
+          "Only recurring services can generate the next engagement.",
+        );
+      }
+
+      if (!currentEngagement.period) {
+        throw new Error("Recurring engagement must have a period.");
+      }
+
+      const recurrenceInterval =
+        currentEngagement.serviceType.recurrenceInterval;
+
+      if (!recurrenceInterval) {
+        throw new Error(
+          "Recurring service is missing its recurrence interval.",
+        );
+      }
+
+      const nextPeriod = getNextPeriod(
+        currentEngagement.period,
+        recurrenceInterval,
+      );
+
+      const existingEngagement = await tx.engagement.findUnique({
+        where: {
+          uniq_client_service_period: {
+            clientId: currentEngagement.clientId,
+            serviceTypeId: currentEngagement.serviceTypeId,
+            period: nextPeriod,
+          },
+        },
+      });
+
+      if (existingEngagement) {
+        throw new Error("The next period engagement already exists.");
+      }
+
+      const nextEngagement = await tx.engagement.create({
+        data: {
+          clientId: currentEngagement.clientId,
+          serviceTypeId: currentEngagement.serviceTypeId,
+          period: nextPeriod,
+          status: EngagementStatus.ACTIVE,
+          startDate: currentEngagement.dueDate ?? new Date(),
+          dueDate: null,
+          createdById,
+        },
+      });
+
+      if (currentEngagement.serviceType.taskTemplates.length > 0) {
+        await tx.task.createMany({
+          data: currentEngagement.serviceType.taskTemplates.map((template) => ({
+            engagementId: nextEngagement.id,
+            templateId: template.id,
+            title: template.title,
+            description: template.description,
+            dueDate: null,
+          })),
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          engagementId: nextEngagement.id,
+          userId: createdById,
+          action: AuditAction.ENGAGEMENT_CREATED,
+          notes: `Generated recurring engagement for period ${nextPeriod}.`,
+        },
+      });
+
+      return tx.engagement.findUnique({
+        where: {
+          id: nextEngagement.id,
+        },
+        include: {
+          client: true,
+          serviceType: true,
+          tasks: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
+        },
+      });
+    },
+    {
+      timeout: 10000,
+    },
+  );
 }
