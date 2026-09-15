@@ -215,7 +215,7 @@ describe("Task assignment authorization", () => {
     expect(teamMember).toBeDefined();
 
     const tasksResponse = await request(app)
-      .get("/api/tasks")
+      .get("/api/tasks?page=1&pageSize=100")
       .set("Authorization", `Bearer ${managerToken}`);
 
     expect(tasksResponse.status).toBe(200);
@@ -256,7 +256,7 @@ describe("Task assignment authorization", () => {
     expect(teamMember).toBeDefined();
 
     const tasksResponse = await request(app)
-      .get("/api/tasks")
+      .get("/api/tasks?page=1&pageSize=100")
       .set("Authorization", `Bearer ${managerToken}`);
 
     expect(tasksResponse.status).toBe(200);
@@ -297,7 +297,7 @@ describe("Task assignment authorization", () => {
     expect(teamMember).toBeDefined();
 
     const tasksResponse = await request(app)
-      .get("/api/tasks")
+      .get("/api/tasks?page=1&pageSize=100")
       .set("Authorization", `Bearer ${managerToken}`);
 
     expect(tasksResponse.status).toBe(200);
@@ -339,7 +339,7 @@ describe("Task assignment authorization", () => {
     expect(teamMember).toBeDefined();
 
     const tasksResponse = await request(app)
-      .get("/api/tasks")
+      .get("/api/tasks?page=1&pageSize=100")
       .set("Authorization", `Bearer ${managerToken}`);
 
     expect(tasksResponse.status).toBe(200);
@@ -382,7 +382,7 @@ describe("Task assignment authorization", () => {
     expect(teamMember).toBeDefined();
 
     const tasksResponse = await request(app)
-      .get("/api/tasks")
+      .get("/api/tasks?page=1&pageSize=100")
       .set("Authorization", `Bearer ${managerToken}`);
 
     expect(tasksResponse.status).toBe(200);
@@ -424,7 +424,7 @@ describe("Task assignment authorization", () => {
     expect(teamMember).toBeDefined();
 
     const tasksResponse = await request(app)
-      .get("/api/tasks")
+      .get("/api/tasks?page=1&pageSize=100")
       .set("Authorization", `Bearer ${managerToken}`);
 
     expect(tasksResponse.status).toBe(200);
@@ -508,7 +508,7 @@ describe("Task assignment authorization", () => {
     expect(teamMember).toBeDefined();
 
     const tasksResponse = await request(app)
-      .get("/api/tasks")
+      .get("/api/tasks?page=1&pageSize=100")
       .set("Authorization", `Bearer ${managerToken}`);
 
     expect(tasksResponse.status).toBe(200);
@@ -568,5 +568,29 @@ describe("Task assignment authorization", () => {
       });
 
     expect(response.status).toBe(403);
+  });
+});
+
+describe("Task pagination", () => {
+  it("returns paginated tasks with pagination metadata", async () => {
+    const managerToken = await login(managerCredentials);
+
+    const response = await request(app)
+      .get("/api/tasks?page=1&pageSize=5")
+      .set("Authorization", `Bearer ${managerToken}`);
+
+    expect(response.status).toBe(200);
+
+    expect(response.body.tasks).toBeInstanceOf(Array);
+    expect(response.body.tasks.length).toBeLessThanOrEqual(5);
+
+    expect(response.body.pagination).toEqual({
+      page: 1,
+      pageSize: 5,
+      total: expect.any(Number),
+      totalPages: expect.any(Number),
+    });
+
+    expect(response.body.pagination.total).toBeGreaterThan(0);
   });
 });
