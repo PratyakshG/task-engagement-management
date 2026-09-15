@@ -42,9 +42,7 @@ export async function listTasksController(req: Request, res: Response) {
     validationResult.data,
   );
 
-  return res.status(200).json({
-    tasks,
-  });
+  return res.status(200).json(tasks);
 }
 
 export async function getTaskController(req: Request, res: Response) {
@@ -197,7 +195,8 @@ export async function changeTaskStatusController(req: Request, res: Response) {
     }
 
     if (
-      error.message === "Managers and Admins are not allowed to change task status."
+      error.message ===
+      "Managers and Admins are not allowed to change task status."
     ) {
       return res.status(403).json({
         error: error.message,

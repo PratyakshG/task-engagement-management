@@ -80,18 +80,31 @@ export async function listTasks(
     }),
   };
 
-  return prisma.task.findMany({
-    where,
-    select: taskListSelect,
-    orderBy: [
-      {
-        dueDate: "asc",
-      },
-      {
-        createdAt: "desc",
-      },
-    ],
-  });
+  const { page, pageSize } = query;
+
+  const [tasks, total] = await Promise.all([
+    prisma.task.findMany({
+      where,
+      select: taskListSelect,
+      orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+
+    prisma.task.count({
+      where,
+    }),
+  ]);
+
+  return {
+    tasks,
+    pagination: {
+      page,
+      pageSize,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+    },
+  };
 }
 
 export async function getTaskById(

@@ -19,6 +19,10 @@ export const listTasksQuerySchema = z.object({
   engagementId: z.uuid().optional(),
 
   overdue: z.enum(["true", "false"]).optional(),
+
+  page: z.coerce.number().int().positive().default(1),
+
+  pageSize: z.coerce.number().int().positive().max(100).default(20),
 });
 
 export const assignTaskSchema = z.object({
