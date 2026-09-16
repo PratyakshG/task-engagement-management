@@ -61,11 +61,10 @@ export function AppShell({ children, user }: AppShellProps) {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <aside className="flex w-64 flex-col border-r bg-white">
+    <div className="flex min-h-screen bg-gray-50 overflow-clip">
+      <aside className="flex w-64 flex-col border-r bg-white h-screen">
         <div className="border-b p-6">
           <h1 className="text-lg font-semibold">Task Management</h1>
-          <p className="mt-1 text-sm text-gray-500">Professional Services</p>
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
@@ -101,14 +100,14 @@ export function AppShell({ children, user }: AppShellProps) {
           <button
             type="button"
             onClick={logout}
-            className="w-full rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+            className="w-full rounded-md border px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer"
           >
             Sign out
           </button>
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 p-8">{children}</main>
+      <main className="min-w-0 flex-1 p-8 max-h-screen overflow-y-scroll">{children}</main>
     </div>
   );
 }
