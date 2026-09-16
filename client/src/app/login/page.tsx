@@ -49,7 +49,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
+    <main className="flex min-h-screen items-center justify-center p-6 bg-foreground">
       <div className="w-full max-w-md">
         <h1 className="mb-2 text-3xl font-semibold">Task Management</h1>
 
@@ -59,7 +59,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="mb-2 block text-sm font-medium text-neutral-500"
+              className="mb-2 block text-sm font-medium text-neutral-800"
             >
               Email
             </label>
@@ -70,7 +70,7 @@ export default function LoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              className="w-full rounded-md border border-neutral-500 px-3 py-2 text-neutral-300"
+              className="w-full rounded-md border border-neutral-500 px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
               placeholder="you@example.com"
             />
           </div>
@@ -78,7 +78,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="mb-2 block text-sm font-medium text-neutral-500"
+              className="mb-2 block text-sm font-medium text-neutral-800"
             >
               Password
             </label>
@@ -89,7 +89,7 @@ export default function LoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="w-full rounded-md border border-neutral-500 px-3 py-2 text-neutral-300"
+              className="w-full rounded-md border border-neutral-500 px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
               placeholder="••••••••"
             />
           </div>
