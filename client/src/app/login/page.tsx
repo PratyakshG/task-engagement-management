@@ -57,7 +57,10 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-medium">
+            <label
+              htmlFor="email"
+              className="mb-2 block text-sm font-medium text-neutral-500"
+            >
               Email
             </label>
 
@@ -67,7 +70,7 @@ export default function LoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              className="w-full rounded-md border px-3 py-2"
+              className="w-full rounded-md border border-neutral-500 px-3 py-2 text-neutral-300"
               placeholder="you@example.com"
             />
           </div>
@@ -75,7 +78,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="mb-2 block text-sm font-medium"
+              className="mb-2 block text-sm font-medium text-neutral-500"
             >
               Password
             </label>
@@ -86,7 +89,7 @@ export default function LoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
-              className="w-full rounded-md border px-3 py-2"
+              className="w-full rounded-md border border-neutral-500 px-3 py-2 text-neutral-300"
               placeholder="••••••••"
             />
           </div>
@@ -100,7 +103,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-50"
+            className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-50 border border-neutral-500"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
