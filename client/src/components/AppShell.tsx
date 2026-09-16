@@ -36,12 +36,27 @@ export function AppShell({ children, user }: AppShellProps) {
     {
       label: "Clients",
       href: "/clients",
-      visible: user.role === "ADMIN" || user.role === "MANAGER",
+      visible: user.role === "ADMIN",
     },
     {
       label: "Users",
       href: "/users",
+      visible: user.role === "ADMIN",
+    },
+    {
+      label: "Engagements",
+      href: "/engagements",
       visible: user.role === "ADMIN" || user.role === "MANAGER",
+    },
+    {
+      label: "Service Types",
+      href: "/service-types",
+      visible: user.role === "ADMIN",
+    },
+    {
+      label: "Task Templates",
+      href: "/task-templates",
+      visible: user.role === "ADMIN",
     },
   ];
 
